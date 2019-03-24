@@ -1,6 +1,10 @@
 import 'dart:typed_data';
 import 'package:flutter/services.dart';
 
+
+ /// This class contains native method calls to native.
+ /// Also this class contains keys for methods and their arguments
+ /// (we need such keys to mark our arguments, so that they can be obtained from native code).
 class NativeApi {
   static const _cropVideoNativeMethodName = "cropVideo";
   static const CROP_VIDEO_METHOD_ARG1 = "partsToSaveAfterCroppingSec";

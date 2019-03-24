@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_app/blocs/camera_bloc.dart';
 import 'package:video_app/blocs/providers.dart';
-import 'package:video_app/screen_values.dart';
+import 'package:video_app/screens/screen_values.dart';
 import 'package:video_app/util.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -98,7 +98,7 @@ class _CameraState extends State<StatefulWidget> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                StreamBuilder<Object>(
+                StreamBuilder<bool>(
                   stream: cameraBloc.recording,
                   initialData: false,
                   builder: (context, recording) {
@@ -106,6 +106,7 @@ class _CameraState extends State<StatefulWidget> {
                       return Container();
                     }
 
+                    /// Record button, changes when recording is true.
                     return FloatingActionButton(
                       mini: recording.data,
                       shape: recording.data ?

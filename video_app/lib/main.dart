@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// Initialize theme
 ThemeData _createDefaultTheme() =>
     ThemeData(
       splashColor: Colors.transparent,

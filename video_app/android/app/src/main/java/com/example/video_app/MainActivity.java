@@ -10,6 +10,7 @@ public class MainActivity extends FlutterActivity {
     super.onCreate(savedInstanceState);
     GeneratedPluginRegistrant.registerWith(this);
 
+    //listens for flutter cropVideo native method call and invokes accordingly
     new MethodChannel(getFlutterView(), "example.com/cropVideo").setMethodCallHandler(
             (call, result) -> {
                 if (call.method.equals(NativeApi.CROP_VIDEO_METHOD)) {
@@ -20,6 +21,7 @@ public class MainActivity extends FlutterActivity {
                             result
                     );
                 } else {
+                    //if flutter invokes another method, send notImplemented
                     result.notImplemented();
                 }
             });

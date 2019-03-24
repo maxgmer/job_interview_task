@@ -5,16 +5,15 @@ import 'package:video_app/util.dart';
 
 class VideoListBloc {
 
-  /// Controllers are containers, which have a Stream and a Sink inside.
-  /// Stream has data flowing through. Usually views use it.
-  /// Sink is a object we use to add data to Stream.
+  /// Contains videos, found in the app directory.
   BehaviorSubject<List<FileSystemEntity>> _videosController = BehaviorSubject<List<FileSystemEntity>>();
   get videos => _videosController.stream;
 
-
+  /// Contains bool, which indicates, if video saving mode is enabled.
   BehaviorSubject<bool> _saveModeController = BehaviorSubject<bool>();
   get saveMode => _saveModeController.stream;
 
+  /// Enables save mode by adding to controller, which notifies all subscribers (views)
   void setSaveMode(bool enabled) => _saveModeController.add(enabled);
 
   /// Connect saved movies to videos stream, which would be used by views.

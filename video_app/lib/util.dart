@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
-/// Utility class.
-/// Helps to work with storage.
+/// Utility class, which helps to work with storage.
 class Util {
   static const String _movieDir = "/Movies/video_app_movies/";
   static const String _externalMovieDir = "/JobTaskSavedMovies/";

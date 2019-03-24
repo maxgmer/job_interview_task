@@ -3,6 +3,7 @@ import 'package:chewie/chewie.dart';
 import 'package:flutter/services.dart';
 import 'package:video_app/blocs/providers.dart';
 import 'package:video_app/blocs/video_player_bloc.dart';
+import 'package:video_app/screens/screen_values.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter/material.dart';
 
@@ -17,13 +18,15 @@ class VideoPlayer extends StatefulWidget {
 
 class _VideoPlayerState extends State<VideoPlayer>
     with WidgetsBindingObserver {
+  /// Wrapper for video player UI
   ChewieController _videoControllerWrapper;
+  /// Video player without UI
   VideoPlayerController _videoController;
-
 
   @override
   void initState() {
     super.initState();
+    /// Fix orientation and init video player.
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     _videoController = VideoPlayerController.file(File(widget.movie.path));
     _videoControllerWrapper = ChewieController(
@@ -42,58 +45,68 @@ class _VideoPlayerState extends State<VideoPlayer>
       home: Scaffold(
         body: Column(
             children: <Widget>[
-              Chewie(
-                controller: _videoControllerWrapper,
-              ),
+              /// Video player.
+              Chewie(controller: _videoControllerWrapper),
               Flexible(
                 child: Column(
                   children: <Widget>[
                     Text(
-                      "Stop the video at any point. Then press start clipping."
-                      "After that go to another part of the video and press stop clipping."
-                      "The part you have have chosen will be clipped out (saved)."
-                      "You can clip out as many parts, as you want."
-                      "The parts you didn't choose will be removed from the video.",
+                      VideoPlayerValues.introductionText,
                       softWrap: true,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: <Widget>[
-                        RaisedButton(
-                          child: Text("Start clipping"),
-                          onPressed: () =>
-                              videoPlayerBloc.addCropTime(_videoController.value.position.inSeconds),
-                        ),
-                        RaisedButton(
-                          child: Text("Stop clipping"),
-                          onPressed: () =>
-                              videoPlayerBloc.addCropTime(_videoController.value.position.inSeconds),
-                        ),
-                        RaisedButton(
-                          child: Text("Finish clipping"),
-                          onPressed: () => videoPlayerBloc.cropAndSave(widget.movie.path),
-                        )
-                      ],
+                    StreamBuilder<bool>(
+                        stream: videoPlayerBloc.isClipping,
+                        initialData: false,
+                        builder: (context, isClipping) {
+                          return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: <Widget>[
+                                /// Clipping buttons
+                                RaisedButton(
+                                  child: Text(
+                                      isClipping.data ? VideoPlayerValues.stopClippingString :
+                                      VideoPlayerValues.startClippingString
+                                  ),
+                                  onPressed: () {
+                                    videoPlayerBloc.addCropTime(_videoController.value.position.inSeconds);
+                                    videoPlayerBloc.clippingSink.add(!isClipping.data);
+                                  },
+                                ),
+                                RaisedButton(
+                                  child: Text(VideoPlayerValues.finishClippingString),
+                                  onPressed: () {
+                                    videoPlayerBloc.cropAndSave(widget.movie.path);
+                                    final snackBar = SnackBar(
+                                      content: Text("${VideoPlayerValues.clippingFinishedString}"),
+                                    );
+                                    Scaffold.of(context).showSnackBar(snackBar);
+                                  },
+                                )
+                              ],
+                          );
+                        },
                     ),
                     Spacer(),
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 20.0),
+                      padding: const EdgeInsets.only(bottom: VideoPlayerValues.clipTimeTextPadding),
                       child: StreamBuilder<Object>(
-                        stream: videoPlayerBloc.cropTimesString,
-                        initialData: "",
-                        builder: (context, cropTimes) {
-                          if (!cropTimes.hasData) {
-                            return Container();
-                          }
-                          return Text("Parts that would be clipped out:\n"
+                          stream: videoPlayerBloc.cropTimesString,
+                          initialData: "",
+                          builder: (context, cropTimes) {
+                            if (!cropTimes.hasData) {
+                              return Container();
+                            }
+
+                            /// Clip times user chose.
+                            return Text("${VideoPlayerValues.clipTimeStartText}:\n"
                               "${cropTimes.data}");
-                        }
+                          },
                       ),
                     )
                   ],
                 ),
               ),
-          ]
+            ]
         ),
       ),
     );

@@ -4,7 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:video_app/blocs/providers.dart';
 import 'package:video_app/blocs/video_list_bloc.dart';
-import 'package:video_app/screen_values.dart';
+import 'package:video_app/screens/screen_values.dart';
 import 'package:video_app/screens/camera_screen.dart';
 import 'package:video_app/screens/video_player_screen.dart';
 import 'package:video_app/util.dart';
@@ -20,11 +20,10 @@ class _VideoListState extends State<StatefulWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     /// Get bloc to access video files stream
     VideoListBloc videoListBloc = Providers.getVideoListBloc(context);
-
     return Scaffold(
+      /// Button to record a video.
       floatingActionButton: FloatingActionButton(
         shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.only(
@@ -68,6 +67,7 @@ class _VideoListState extends State<StatefulWidget> {
                       return Container();
                     }
 
+                    /// Button to save data
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
@@ -101,6 +101,7 @@ class _VideoListState extends State<StatefulWidget> {
                     )
                 ),
               ),
+              /// Button to delete all videos, which are not saved to external yet.
               Expanded(
                 child: GestureDetector(
                   onTap: (){
@@ -126,14 +127,15 @@ class _VideoListState extends State<StatefulWidget> {
           ),
         ),
       ),
+
+      /// Build list
       body: StreamBuilder<List<FileSystemEntity>>(
         stream: videoListBloc.videos,
         builder: (context, files) {
           if (!files.hasData) {
             return Container();
           }
-
-          /// Convert to list, so that we can use it in ListView.builder()
+          /// Convert files stream to list, so that we can use it in ListView.builder()
           List<FileSystemEntity> filesList = List<FileSystemEntity>();
           files.data.forEach((file) {
             filesList.add(file);
@@ -143,7 +145,6 @@ class _VideoListState extends State<StatefulWidget> {
               itemCount: filesList.length,
               itemBuilder: (context, index) {
                 return ListTile(
-                  selected: index == 0,
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (context) => VideoPlayer(filesList[index]))),
                   contentPadding: EdgeInsets.all(ListScreenValues.listTilePadding),
@@ -156,36 +157,11 @@ class _VideoListState extends State<StatefulWidget> {
                         return Container();
                       }
 
+                      /// Build list tile, based on the enabled mode (default or save mode).
                       if (!saveModeEnabled.data) {
-                        return Container(
-                            child: Text('${ListScreenValues.listTileTextBeginning}: '
-                                '${filesList[index].path}',
-                                softWrap: true,
-                                style: TextStyle(
-                                    fontSize: ListScreenValues.listTileTextSize)
-                            )
-                        );
+                        return _buildListTileDefault(filesList, index);
                       } else {
-                        List<String> splitMoviePath = filesList[index].path.split("/");
-                        return GestureDetector(
-                          onTap: () {
-                            Util.saveMovie(filesList[index]).then((path) {
-                              final snackBar = SnackBar(
-                                content: Text("Saved to $path"),
-                              );
-                              Scaffold.of(context).showSnackBar(snackBar);
-                              videoListBloc.initializeControllers();
-                            });
-                          },
-                          child: Container(
-                              child: Text('${ListScreenValues.listTileTextBeginningSave}: '
-                                  '${splitMoviePath[splitMoviePath.length - 1]}',
-                                  softWrap: true,
-                                  style: TextStyle(
-                                      fontSize: ListScreenValues.listTileTextSize)
-                              )
-                          ),
-                        );
+                        return _buildListTileForSaveMode(filesList, index, videoListBloc);
                       }
                     }
                   ),
@@ -193,6 +169,39 @@ class _VideoListState extends State<StatefulWidget> {
               }
           );
         }
+      ),
+    );
+  }
+
+  Widget _buildListTileDefault(List<FileSystemEntity> filesList, int index) {
+    return Container(
+        child: Text('${ListScreenValues.listTileTextBeginning}: '
+            '${filesList[index].path}',
+            softWrap: true,
+            style: TextStyle(
+                fontSize: ListScreenValues.listTileTextSize)
+        )
+    );
+  }
+
+  Widget _buildListTileForSaveMode(List<FileSystemEntity> filesList, int index, VideoListBloc videoListBloc) {
+    List<String> splitMoviePath = filesList[index].path.split("/");
+    return GestureDetector(
+      onTap: () {
+        Util.saveMovie(filesList[index]).then((path) {
+          final snackBar = SnackBar(
+            content: Text("${ListScreenValues.savedToString} $path"),
+          );
+          Scaffold.of(context).showSnackBar(snackBar);
+          videoListBloc.initializeControllers();
+        });
+      },
+      child: Container(
+          child: Text('${ListScreenValues.listTileTextBeginningSave}: '
+              '${splitMoviePath[splitMoviePath.length - 1]}',
+              softWrap: true,
+              style: TextStyle(fontSize: ListScreenValues.listTileTextSize)
+          )
       ),
     );
   }

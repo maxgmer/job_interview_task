@@ -21,14 +21,34 @@ import java.util.List;
 
 import io.flutter.plugin.common.MethodChannel;
 
-public class NativeApi {
+/**
+ * This class contains native methods to be called from flutter.
+ * Also this class contains keys for methods and their arguments
+ * (we need such keys to get them from flutter message).
+ */
+class NativeApi {
 
-    public static final String CROP_VIDEO_METHOD = "cropVideo";
-    public static String CROP_VIDEO_METHOD_ARG1 = "partsToSaveAfterCroppingSec";
-    public static String CROP_VIDEO_METHOD_ARG2 = "clipInputPath";
-    public static String CROP_VIDEO_METHOD_ARG3 = "clipOutputPath";
+    static final String CROP_VIDEO_METHOD = "cropVideo";
+    static String CROP_VIDEO_METHOD_ARG1 = "partsToSaveAfterCroppingSec";
+    static String CROP_VIDEO_METHOD_ARG2 = "clipInputPath";
+    static String CROP_VIDEO_METHOD_ARG3 = "clipOutputPath";
 
-    public static void cropVideo(int[] partsToSaveAfterCroppingSec,
+    /**
+     * Crops video, saves it and sends method result to flutter with cropped video path
+     * @param partsToSaveAfterCroppingSec
+     * Contains seconds, which are used to clip video.
+     * E.g. {1, 5, 6, 8, 15, 26}. From such array we will first cut out
+     * video part from 1 to 5. Then we will cut out video part from 6 to 8.
+     * Then we will cut out from sec 15 to sec 26. After that we will
+     * combine these parts to get a clipped video.
+     * @param clipInputPath
+     * Path to video we want to clip.
+     * @param clipOutputPath
+     * Path, where clipped video will be saved.
+     * @param result
+     * Object we use to send method invocation result back to flutter.
+     */
+    static void cropVideo(int[] partsToSaveAfterCroppingSec,
                                  String clipInputPath, String clipOutputPath,
                                  MethodChannel.Result result) {
         List<String> tempFilePaths = new ArrayList<>();
@@ -48,6 +68,13 @@ public class NativeApi {
         }
     }
 
+    /**
+     * Convenience method for removing unnesessary files.
+     * @param tempFilePaths
+     * Paths to unnesessary files.
+     * @throws IOException
+     * If deletion was unsuccessful, we get this.
+     */
     private static void clearUpTempFiles(List<String> tempFilePaths) throws IOException {
         for (String path : tempFilePaths) {
             if (!new File(path).getAbsoluteFile().delete()) {
@@ -56,7 +83,16 @@ public class NativeApi {
         }
     }
 
-    public static void combineVideos(List<String> videos, String outputPath) throws IOException {
+    /**
+     * Helper methods for combining clipped video parts.
+     * @param videos
+     * Videos to combine.
+     * @param outputPath
+     * Path where we save combined video.
+     * @throws IOException
+     * If writing was unsuccessful, we get this.
+     */
+    private static void combineVideos(List<String> videos, String outputPath) throws IOException {
         List<Movie> inMovies = new ArrayList<Movie>();
         for (String videoUri : videos) {
             inMovies.add(MovieCreator.build(videoUri));
@@ -93,7 +129,21 @@ public class NativeApi {
         fos.close();
     }
 
-    public static void trimVideo(final String srcFileDir, final String outFileDir,
+    /**
+     * Helps us to trim video.
+     * @param srcFileDir
+     * File to trim.
+     * @param outFileDir
+     * Path to save output to.
+     * @param fromSecond
+     * Where our trimmed video would start.
+     * @param toSecond
+     * Where our trimmed video would end.
+     * @throws IOException
+     * Writing to memory or getting input from memory can
+     * cause this exception.
+     */
+    private static void trimVideo(final String srcFileDir, final String outFileDir,
                                  final double fromSecond, final double toSecond) throws IOException {
 
         if (fromSecond < 0) {
@@ -155,6 +205,19 @@ public class NativeApi {
         fos.close();
     }
 
+    /**
+     * Videos are composed of "samples", which are shown one by one,
+     * sample durations are different and we cannot cut video where we want, we can cut video
+     * only at the end of a sample. If we cut in the middle of a sample, it can even make mp4 corrupt.
+     * To cut our files correctly, we need to correct our cut time a little bit, so that we cannot
+     * make file corrupt or get incorrect clipping results.
+     * @param track
+     * Track, which samples we are going to use to correct our time.
+     * @param cutHere
+     * Time where we want to cut our video. This time will be corrected.
+     * @return
+     * Returns corrected value, which we can use to cut our video properly.
+     */
     private static double correctTimeToNextSyncSample(Track track, double cutHere) {
         double[] timeOfSyncSamples = new double[track.getSyncSamples().length];
         long currentSample = 0;

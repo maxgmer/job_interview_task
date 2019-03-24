@@ -49,4 +49,5 @@ class VideoPlayerValues {
   static const double clipTimeTextPadding = 20.0;
   static const String clipTimeStartText = "Parts that would be clipped out";
   static const String clippingFinishedString = "Clipping is finished!";
+  static const String clippingNotFinishedString = "Clipping not finished, press Stop clipping.";
 }

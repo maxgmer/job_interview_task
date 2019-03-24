@@ -75,6 +75,15 @@ class _VideoPlayerState extends State<VideoPlayer>
                                 RaisedButton(
                                   child: Text(VideoPlayerValues.finishClippingString),
                                   onPressed: () {
+                                    /// We don't clip, if user has not marked where to stop clipping
+                                    if (isClipping.data) {
+                                      final snackBar = SnackBar(
+                                        content: Text("${VideoPlayerValues.clippingNotFinishedString}"),
+                                      );
+                                      Scaffold.of(context).showSnackBar(snackBar);
+                                      return;
+                                    }
+
                                     videoPlayerBloc.cropAndSave(widget.movie.path);
                                     final snackBar = SnackBar(
                                       content: Text("${VideoPlayerValues.clippingFinishedString}"),

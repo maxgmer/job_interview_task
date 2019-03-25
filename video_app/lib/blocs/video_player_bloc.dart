@@ -18,6 +18,7 @@ class VideoPlayerBloc {
   get cropTimesString => _cropTimesController.stream;
 
   /// Adds new crop time to array and updates crop times string used by views.
+  /// Then throws this string into cropTimesController stream.
   void addCropTime(int secondsToCropAt) {
 
     /// Cut fromSeconds cannot be later than cut toSeconds

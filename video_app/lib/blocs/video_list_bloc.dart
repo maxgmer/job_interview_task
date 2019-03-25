@@ -16,12 +16,11 @@ class VideoListBloc {
   /// Enables save mode by adding to controller, which notifies all subscribers (views)
   void setSaveMode(bool enabled) => _saveModeController.add(enabled);
 
-  /// Connect saved movies to videos stream, which would be used by views.
+  /// Connect saved movies directory files to videos stream, which would be used by views.
   void initializeControllers() async {
     Stream<FileSystemEntity> moviesStream = Directory(await Util.getMoviesDir()).list();
     _videosController.add(await moviesStream.toList());
   }
-
 
   /// Dispose of streams
   void dispose() {
